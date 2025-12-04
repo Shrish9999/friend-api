@@ -13,10 +13,23 @@ connectDB();
 
 // ROUTES -------------------------------------
 
+// 1. UPDATE: Search feature add kiya hai yahan
 app.get('/friends', async (req, res) => {
     try {
-        const allFriends = await Friend.find();
-        res.json(allFriends);
+        // URL se 'name' nikalenge (Jaise: /friends?name=Rahul)
+        const { name } = req.query; 
+        
+        let query = {};
+        
+        // Agar name diya hai, toh filter lagayenge
+        if (name) {
+            // $regex ka use karke search kar rahe hain (case-insensitive 'i' ke saath)
+            query.name = { $regex: name, $options: 'i' }; 
+        }
+
+        // Agar name nahi diya, toh query {} rahegi aur saare dost aayenge
+        const friends = await Friend.find(query);
+        res.json(friends);
     } catch (error) {
         res.status(500).json({ message: "Server Error" });
     }
