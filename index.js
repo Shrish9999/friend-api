@@ -1,4 +1,5 @@
 const express = require('express');
+const session = require('express-session'); // 1. Session package import kiya
 const app = express();
 const port = 3000;
 
@@ -8,26 +9,49 @@ const Friend = require('./models/friend');
 
 app.use(express.json());
 
+// 2. SESSION CONFIGURATION (Middleware)
+// Ye app.use(express.json()) ke baad lagana sahi rehta hai
+app.use(session({
+    secret: 'bhai-ka-top-secret-key', // Production mein .env file mein rakhte hain
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false } // Localhost ke liye false, HTTPS ke liye true
+}));
+
+// 3. GLOBAL MIDDLEWARE (Logging)
+// Ye har request pe chalega aur batayega kaunsa URL hit hua.
+app.use((req, res, next) => {
+    console.log(`👉 Request Aayi hai: ${req.method} ${req.url} | Time: ${new Date().toLocaleTimeString()}`);
+    next(); // Aage badhne ke liye zaroori hai
+});
+
 // Yahan Database connect function call kiya
 connectDB();
 
 // ROUTES -------------------------------------
 
+// 4. NEW ROUTE: Session/Cookie Demo (Visit Counter)
+// Is route pe jaoge toh pata chalega tum kitni baar aaye ho
+app.get('/dashboard', (req, res) => {
+    if (req.session.views) {
+        req.session.views++;
+        res.send(`<h1>Welcome Back Bhai! 👋</h1> <p>Tum yahan <strong>${req.session.views}</strong> baar aa chuke ho (Session Active).</p>`);
+    } else {
+        req.session.views = 1;
+        res.send('<h1>Namaste Bhai! 🙏</h1> <p>Pehli baar aaye ho? Refresh karke magic dekho!</p>');
+    }
+});
+
 // 1. UPDATE: Search feature add kiya hai yahan
 app.get('/friends', async (req, res) => {
     try {
-        // URL se 'name' nikalenge (Jaise: /friends?name=Rahul)
         const { name } = req.query; 
-        
         let query = {};
         
-        // Agar name diya hai, toh filter lagayenge
         if (name) {
-            // $regex ka use karke search kar rahe hain (case-insensitive 'i' ke saath)
             query.name = { $regex: name, $options: 'i' }; 
         }
 
-        // Agar name nahi diya, toh query {} rahegi aur saare dost aayenge
         const friends = await Friend.find(query);
         res.json(friends);
     } catch (error) {
