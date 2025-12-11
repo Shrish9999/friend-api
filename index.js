@@ -23,9 +23,7 @@ const friendSchema = new mongoose.Schema({
 const Friend = mongoose.model('Friend', friendSchema);
 
 // --- MOCK MIDDLEWARE (Authentication ke liye) ---
-// Note: Asli project mein tumhara JWT verify logic hoga
 const requireLogin = (req, res, next) => {
-    // Abhi ke liye seedha allow kar rahe hain
     console.log("Checking login..."); 
     next();
 };
@@ -45,13 +43,35 @@ app.post('/friends', requireLogin, async (req, res) => {
 
 // 2. Get All Friends
 app.get('/friends', async (req, res) => {
-    const friends = await Friend.find({});
-    res.json(friends);
+    try {
+        const friends = await Friend.find({});
+        res.json(friends);
+    } catch (e) {
+        res.status(500).json({ error: "Server Error" });
+    }
 });
 
 // --- NEW FEATURES FOR TODAY (ADDED BY SHRISH TIWARI) ---
 
-// 9. Toggle Best Friend Status (Special Feature)
+// 3. Search Friend by Name (Query Params: /friends/search?name=Rohan)
+// Note: SQL mein ye 'SELECT * FROM friends WHERE name LIKE ...' jaisa hai
+app.get('/friends/search', async (req, res) => {
+    try {
+        const { name } = req.query;
+        if (!name) return res.status(400).json({ message: "Naam toh batao bhai search ke liye!" });
+
+        // Case insensitive search (RegEx)
+        const friends = await Friend.find({ name: new RegExp(name, 'i') });
+        
+        if (friends.length === 0) return res.status(404).json({ message: "Koi nahi mila is naam ka." });
+        
+        res.json(friends);
+    } catch (e) {
+        res.status(500).send("Search mein error aa gaya");
+    }
+});
+
+// 4. Toggle Best Friend Status (Special Feature)
 app.patch('/friends/:id/toggle-bestie', requireLogin, async (req, res) => {
     try {
         const friend = await Friend.findById(req.params.id);
@@ -70,7 +90,20 @@ app.patch('/friends/:id/toggle-bestie', requireLogin, async (req, res) => {
     }
 });
 
-// 10. Global 404 Handler (Hamesha last mein aata hai)
+// 5. Delete Friend (CRUD Complete ho gaya)
+// Note: SQL mein ye 'DELETE FROM friends WHERE id = ...' jaisa hai
+app.delete('/friends/:id', requireLogin, async (req, res) => {
+    try {
+        const deletedFriend = await Friend.findByIdAndDelete(req.params.id);
+        if (!deletedFriend) return res.status(404).json({ message: "Delete karne ke liye dost nahi mila" });
+        
+        res.json({ message: "Dost ko list se hata diya gaya hai 👋", deletedFriend });
+    } catch (e) {
+        res.status(500).send("Delete mein error aa gaya");
+    }
+});
+
+// 6. Global 404 Handler (Hamesha last mein aata hai)
 app.use((req, res) => {
     res.status(404).json({ 
         error: "404 Not Found", 
