@@ -1,0 +1,89 @@
+1. What is a Database?
+Simple Definition: Database ek digital "Godaam" (warehouse) ya "Register" hai jahan hum data (information) store karte hain.
+Samajhne ke liye:
+Jaise aapke phone ki Gallery mein photos store hoti hain, ya Phonebook mein contacts save hote hain. Wo peeche ek database hi use kar rahe hain taaki aap jab chahein photo dekh sakein ya number dial kar sakein.
+2. Why do we use databases?
+Hum data ko text file ya notebook mein bhi likh sakte hain, par database kyu chahiye?
+Security: Notebook kho sakti hai, database mein password aur backup hota hai.
+Speed: Agar register mein 1 lakh naam hain, toh "Rahul" ko dhundne mein ghanto lagenge. Database mili-seconds mein dhund leta hai.
+Multiple Users: Ek saath 10 log data use kar sakte hain (jaise IRCTC par ticket book karna).
+3. Types of Databases (Relational & Non-Relational)
+Relational Database (RDBMS/SQL):
+Ye Excel Sheet jaisa hota hai.
+Isme Rows aur Columns hote hain.
+Data strict rules follow karta hai.
+Example: MySQL, PostgreSQL.
+Non-Relational Database (NoSQL):
+Ye ek Folder jaisa hota hai jisme alag-alag files padi hain.
+Isme koi strict row/column nahi hota. Data flexible hota hai.
+Example: MongoDB, Cassandra.
+4. Basic Concepts
+Yahan hum SQL (Relational) aur NoSQL (MongoDB) ke terms ko compare karenge:
+Concept	SQL (Relational) Name	NoSQL (MongoDB) Name	Easy Meaning
+Container	Table	Collection	Jaise ek Excel ki sheet ya ek poora Register.
+Data Entry	Row	Document	Ek insan ki puri detail (Ek line ya ek page).
+Data Label	Column/Field	Field	Jaise "Name", "Age", "Email".
+Primary Key	Primary Key	_id	Har entry ka unique Roll Number (taaki mix na ho).
+Link	Foreign Key	Reference	Ek table ko dusre se jodna (Jaise User ID se uska Order dhundna).
+5. SQL vs NoSQL Differences
+Structure:
+SQL: Pehle se decide karna padta hai ki kya kya save karoge (Name, Age only). Nayi cheez add karna mushkil hai.
+NoSQL: Kabhi bhi kuch bhi add kar lo (Aaj Name, Age... kal shauk hua toh Hobbies bhi add kar diya).
+Scaling:
+SQL: Building ko uncha karna (Vertical Scaling - Mehengi RAM/CPU lagao).
+NoSQL: Bagal mein nayi building banana (Horizontal Scaling - Saste computers add karte jao).
+6. Schema vs Schema-less Databases
+Schema (Strict Rule): School Uniform jaisa. Sabko same format mein hona padega. Agar rule hai ki "Age" number hoga, toh wahan text nahi likh sakte. (SQL mein hota hai).
+Schema-less (Flexible): Casual kapdo jaisa. Koi jeans pehne, koi shorts. Kisi document mein 3 fields ho sakte hain, kisi mein 10. (MongoDB mein hota hai).
+7. Introduction to MongoDB
+MongoDB ek NoSQL database hai.
+JSON style: Ye data ko waise hi store karta hai jaise JavaScript objects dikhte hain { key: value }.
+BSON: Asal mein MongoDB background mein BSON (Binary JSON) use karta hai. Ye JSON ka hi bhai hai lekin fast hai aur photos/videos jaisa data bhi handle kar leta hai.
+Hierarchy:
+Database (School) -> Collection (Classroom) -> Document (Student).
+8. MongoDB CRUD Operations
+CRUD ka matlab hai data ke sath khelna: Create, Read, Update, Delete.
+Create (Insert): Data dalna.
+code
+JavaScript
+db.users.insertOne({ name: "Rahul", age: 25 })
+Read (Find): Data dhundna.
+code
+JavaScript
+db.users.find({ name: "Rahul" })
+Update: Data change karna.
+code
+JavaScript
+db.users.updateOne({ name: "Rahul" }, { $set: { age: 26 } })
+// Rahul ki age 26 kar do
+Delete: Data hatana.
+code
+JavaScript
+db.users.deleteOne({ name: "Rahul" })
+9. Important Concepts in MongoDB
+Indexes (Book ka Index Page):
+Agar book mein index na ho toh topic dhundne mein puri book palatni padegi.
+Database mein Index banane se searching super fast ho jati hai.
+Aggregation (Juicer Mixer):
+Data ko filter karna, jodna, aur process karna.
+Example: "Poore India ke users mein se sirf Delhi ke users nikalo aur unki average age batao." Ye kaam Aggregation pipeline karta hai.
+Validation Rules:
+Bhale hi MongoDB flexible hai, par hum rules laga sakte hain. Jaise: "Email hona zaroori hai" ya "Age 18 se kam nahi honi chahiye".
+10. How MongoDB connects with Node.js
+Node.js aur MongoDB directly baat kar sakte hain, par hum beech mein ek library use karte hain jiska naam hai Mongoose.
+Mongoose kya hai?
+Ye ek "Translator" aur "Bodyguard" hai.
+Ye MongoDB (jo schema-less hai) uske upar ek Schema (rules) laga deta hai taaki code clean rahe.
+Basic Connection Steps:
+Library install karo: npm install mongoose
+Connect karo (Code snippet):
+code
+JavaScript
+const mongoose = require('mongoose');
+
+// Connection URL (Localhost ya Cloud ka link)
+const uri = "mongodb://localhost:27017/myDatabase";
+
+mongoose.connect(uri)
+  .then(() => console.log("Bhai, Database connect ho gaya!"))
+  .catch((err) => console.log("Connection fail ho gaya yaar", err))

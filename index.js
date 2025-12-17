@@ -59,8 +59,8 @@ app.post('/friends', requireLogin, async (req, res) => {
     }
 });
 
-// 2. Search Friend (GET - Specific Route PEHLE aayega)
-// Usage: /friends/search?name=Rohan
+// 2. Search Friend (GET)
+// Isko '/friends/:id' se PEHLE rakhna zaroori hai
 app.get('/friends/search', async (req, res) => {
     try {
         const { name } = req.query;
@@ -77,8 +77,8 @@ app.get('/friends/search', async (req, res) => {
     }
 });
 
-// 3. Get Stats (GET - New Feature for GitHub)
-// Ye batayega total dost kitne hain aur besties kitne hain
+// 3. Get Stats (GET)
+// Total dost aur best friends ka count
 app.get('/friends/stats', async (req, res) => {
     try {
         const totalFriends = await Friend.countDocuments();
@@ -95,7 +95,22 @@ app.get('/friends/stats', async (req, res) => {
     }
 });
 
-// 4. Get All Friends (GET - Sorted Newest First)
+// 4. Get Random Friend (GET)
+// MongoDB Aggregation ka use karke random data nikalenge
+app.get('/friends/random', async (req, res) => {
+    try {
+        const count = await Friend.countDocuments();
+        if(count === 0) return res.json({ message: "List khali hai bhai." });
+
+        // $sample use karke random document pick karega
+        const randomFriend = await Friend.aggregate([{ $sample: { size: 1 } }]);
+        res.json(randomFriend[0]);
+    } catch (e) {
+        res.status(500).json({ error: "Random pick fail ho gaya." });
+    }
+});
+
+// 5. Get All Friends (GET - Sorted Newest First)
 app.get('/friends', async (req, res) => {
     try {
         // .sort({ createdAt: -1 }) naye doston ko upar dikhayega
@@ -106,4 +121,41 @@ app.get('/friends', async (req, res) => {
     }
 });
 
-// 5. Toggle Best Friend Status (PATCH - Dynam
+// 6. Toggle Best Friend Status (PATCH - Dynamic Update)
+// Usage: /friends/ID_YAHAN_AAYEGA/bestie
+app.patch('/friends/:id/bestie', async (req, res) => {
+    try {
+        const friend = await Friend.findById(req.params.id);
+        if (!friend) return res.status(404).json({ message: "Dost nahi mila, shayad ghost kar diya." });
+
+        // Status ko flip kar rahe hain (True -> False / False -> True)
+        friend.isBestFriend = !friend.isBestFriend;
+        await friend.save();
+
+        res.json({ 
+            message: friend.isBestFriend ? "Ab ye Best Friend hai! 💖" : "Friendzone kar diya wapas. 💔", 
+            friend 
+        });
+    } catch (e) {
+        res.status(500).json({ error: "Update mein error aaya." });
+    }
+});
+
+// 7. Delete Friend (DELETE - Rishta Khatam)
+app.delete('/friends/:id', requireLogin, async (req, res) => {
+    try {
+        const deletedFriend = await Friend.findByIdAndDelete(req.params.id);
+        if (!deletedFriend) return res.status(404).send("Delete karne ke liye koi mila hi nahi.");
+        
+        res.json({ message: "Dosti khatam, tata bye bye! 👋", deletedFriend });
+    } catch (e) {
+        res.status(500).send("Delete failed.");
+    }
+});
+
+// --- SERVER START ---
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`🚀 Server chal pada port ${PORT} pe!`);
+    console.log(`👉 Use Postman/Browser: http://localhost:${PORT}/friends`);
+});
